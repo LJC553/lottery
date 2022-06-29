@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.itedus.lottery.infrastructure.dao.IUserStrategyExportDao">
+
+    <resultMap id="userStrategyExportMap" type="cn.itedus.lottery.infrastructure.po.UserStrategyExport">
+        <id column="id" property="id"/>
+        <result column="u_id" property="uId"/>
+        <result column="activity_id" property="activityId"/>
+        <result column="order_id" property="orderId"/>
+        <result column="strategy_id" property="strategyId"/>
+        <result column="strategy_mode" property="strategyMode"/>
+        <result column="grant_type" property="grantType"/>
+        <result column="grant_date" property="grantDate"/>
+        <result column="grant_state" property="grantState"/>
+        <result column="award_id" property="awardId"/>
+        <result column="award_type" property="awardType"/>
+        <result column="award_name" property="awardName"/>
+        <result column="award_content" property="awardContent"/>
+        <result column="uuid" property="uuid"/>
+        <result column="mq_state" property="MqState"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="cn.itedus.lottery.infrastructure.po.UserStrategyExport">
+        INSERT INTO user_strategy_export
+        (u_id, activity_id, order_id, strategy_id, strategy_mode,
+         grant_type, grant_date, grant_state, award_id, award_type,
+         award_name, award_content, uuid, mq_state, create_time, update_time)
+        VALUES
+        (#{uId},#{activityId},#{orderId},#{strategyId},#{strategyMode},
+         #{grantType},#{grantDate},#{grantState},#{awardId},#{awardType},
+         #{awardName},#{awardContent},#{uuid},#{mqState},now(),now())
+    </insert>
+
+    <select id="queryUserStrategyExportByUId" parameterType="java.lang.String" resultMap="userStrategyExportMap">
+        SELECT id, u_id, activity_id, order_id, strategy_id, strategy_mode,
+               grant_type, grant_date, grant_state, award_id, award_type,
+               award_name, award_content, uuid, mq_state, create_time, update_time
+        FROM user_strategy_export
+        WHERE u_id = #{uId}
+    </select>
+
+    <update id="updateUserAwardState" parameterType="cn.itedus.lottery.infrastructure.po.UserStrategyExport">
+        UPDATE user_strategy_export SET grant_state = #{grantState}, grant_date = now(), update_time = now()
+        WHERE u_id = #{uId} AND order_id = #{orderId} AND award_id = #{awardId}
+    </update>
+
+    <update id="updateInvoiceMqState" parameterType="cn.itedus.lottery.infrastructure.po.UserStrategyExport">
+        UPDATE user_strategy_export SET mq_state = #{mqState}, update_time = now()
+        WHERE u_id = #{uId} AND order_id = #{orderId}
+    </update>
+
+    <select id="scanInvoiceMqState" resultMap="userStrategyExportMap">
+        SELECT u_id, order_id, award_id, award_type, award_name, award_content
+        FROM user_strategy_export
+        WHERE mq_state = 2 OR ( mq_state = 0 AND now() - create_time > 1800000 )
+    </select>
+
+</mapper>
